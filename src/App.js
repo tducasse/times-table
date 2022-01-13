@@ -146,7 +146,7 @@ const Question = ({ question, onAnswer, score, number, time, stopGame }) => {
 const Results = ({ number, score, errors, back, sign }) => <center>
   <h4>Number of questions: {number}</h4>
   <h4>Score: {score}</h4>
-  <h4>Errors: {errors.length}</h4>
+  <h4>Mistakes: {errors.length}</h4>
   <h4>Missed: {number - (score + errors.length)}</h4>
   {!!errors.length &&
     <div style={{ display: "flex", justifyContent: "center", flexDirection: "column" }}>
