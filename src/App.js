@@ -115,11 +115,13 @@ const Game = ({ number, time, setScore, score, stopGame, errors, setErrors, oper
   const [count, setCount] = useState(1);
 
   const onAnswer = (answer) => {
+    if (answer === "") return;
     const operation = operations[count - 1];
     if (answer === operation.result) {
       setScore(score + 1);
     } else {
       operation.error = true;
+      operation.answer = answer;
       setErrors(errors + 1);
     }
     if (count < operations.length) {
@@ -152,7 +154,7 @@ const Question = ({ question, onAnswer, score, number, time, stopGame }) => {
         <Score score={score} total={number} /></div>
       <label><h1>{question}</h1></label>
       <input type="number" value={answer} onChange={onChange} />
-      <button type="submit" style={{ marginTop: 36 }}>Answer</button>
+      <button type="submit" disabled={answer === ""} style={{ marginTop: 36 }}>Answer</button>
     </center>
   </form >
 }
@@ -163,20 +165,25 @@ const Results = ({ number, score, errors, back, sign, operations }) => <center>
   <h4>Mistakes: {errors}</h4>
   <h4>Missed: {number - (score + errors)}</h4>
   <div style={{ display: "flex", justifyContent: "center", flexDirection: "column" }}>
-    {operations.map(({ first, second, question, result, error }, index) => (
+    {operations.map(({ first, second, question, result, error, answer }, index) => (
       <div key={question + index}>
-        <Result first={first} error={error} second={second} result={result} sign={sign} />
+        <Result first={first} error={error} second={second} answer={answer} result={result} sign={sign} />
       </div>
     ))}
   </div>
   <button onClick={back}>Back</button>
 </center>
 
-const Result = ({ first, second, result, sign, error }) => <div style={{ display: "flex", flexDirection: "column", maxWidth: 250 }}>
-  <div style={{ display: "flex", flexDirection: "row", justifyContent: "space-evenly", color: error ? "red" : "green" }}>
-    <h3>{first}</h3><h4>{symbols[sign]}</h4><h3>{second}</h3><h4>=</h4><h3>{result}</h3>
+const Result = ({ first, second, result, sign, error, answer }) => <div style={{ display: "flex", flexDirection: "column", maxWidth: 250 }}>
+  <div style={{ display: "flex", flexDirection: "column", padding: 3, backgroundColor: error ? "#e75959" : "#20a2c9", borderRadius: 10, margin: 6 }}>
+    <div style={{ display: "flex", flexDirection: "row", justifyContent: "space-evenly" }} >
+      <h3>{first}</h3><h4>{symbols[sign]}</h4><h3>{second}</h3><h4>=</h4><h3>{result}</h3>
+    </div>
+    {error && <div style={{ display: "flex", flexDirection: "row", justifyContent: "space-evenly", marginTop: '-1.5em' }}>
+      <h4 >You answered: {answer}</h4>
+    </div>}
   </div>
-</div>
+</div >
 
 const Timer = ({ time, stopGame }) => {
   const [timeLeft, setTimeLeft] = useState(time);
