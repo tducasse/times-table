@@ -6,8 +6,9 @@ const App = () => {
   const [time, setTime] = useState(60);
   const [score, setScore] = useState(0);
   const [step, setStep] = useState(0)
-  const [errors, setErrors] = useState([])
+  const [errors, setErrors] = useState(0)
   const [sign, setSign] = useState('multiplication')
+  const [operations, setOperations] = useState(getOperations(max, number, sign));
 
   const startGame = () => setStep(1)
 
@@ -16,13 +17,13 @@ const App = () => {
   const back = () => {
     setScore(0);
     setStep(0)
-    setErrors([])
+    setErrors(0)
   }
 
   return <>
     {step === 0 && <Setup max={max} number={number} setNumber={setNumber} setMax={setMax} startGame={startGame} time={time} setTime={setTime} sign={sign} setSign={setSign} />}
-    {step === 1 && <Game max={max} number={number} time={time} stopGame={stopGame} score={score} setScore={setScore} errors={errors} setErrors={setErrors} sign={sign} />}
-    {step === 2 && <Results number={number} score={score} back={back} errors={errors} sign={sign} />}
+    {step === 1 && <Game number={number} time={time} stopGame={stopGame} score={score} setScore={setScore} errors={errors} setErrors={setErrors} setOperations={setOperations} operations={operations} />}
+    {step === 2 && <Results number={number} score={score} back={back} errors={errors} sign={sign} operations={operations} />}
   </>
 
 }
@@ -110,15 +111,16 @@ const getOperations = (max, number, sign) => {
 }
 
 
-const Game = ({ number, max, time, setScore, score, stopGame, errors, setErrors, sign }) => {
+const Game = ({ number, time, setScore, score, stopGame, errors, setErrors, operations }) => {
   const [count, setCount] = useState(1);
-  const [operations] = useState(getOperations(max, number, sign));
 
   const onAnswer = (answer) => {
-    if (answer === operations[count - 1].result) {
+    const operation = operations[count - 1];
+    if (answer === operation.result) {
       setScore(score + 1);
     } else {
-      setErrors([...errors, operations[count - 1]]);
+      operation.error = true;
+      setErrors(errors + 1);
     }
     if (count < operations.length) {
       setCount(count + 1);
@@ -155,26 +157,23 @@ const Question = ({ question, onAnswer, score, number, time, stopGame }) => {
   </form >
 }
 
-const Results = ({ number, score, errors, back, sign }) => <center>
+const Results = ({ number, score, errors, back, sign, operations }) => <center>
   <h4>Number of questions: {number}</h4>
   <h4>Score: {score}</h4>
-  <h4>Mistakes: {errors.length}</h4>
-  <h4>Missed: {number - (score + errors.length)}</h4>
-  {!!errors.length &&
-    <div style={{ display: "flex", justifyContent: "center", flexDirection: "column" }}>
-      <h2>Mistakes:</h2>
-      {errors.map(({ first, second, question, result }, index) => (
-        <div key={question + index}>
-          <Error first={first} second={second} result={result} sign={sign} />
-        </div>
-      ))}
-    </div>
-  }
+  <h4>Mistakes: {errors}</h4>
+  <h4>Missed: {number - (score + errors)}</h4>
+  <div style={{ display: "flex", justifyContent: "center", flexDirection: "column" }}>
+    {operations.map(({ first, second, question, result, error }, index) => (
+      <div key={question + index}>
+        <Result first={first} error={error} second={second} result={result} sign={sign} />
+      </div>
+    ))}
+  </div>
   <button onClick={back}>Back</button>
 </center>
 
-const Error = ({ first, second, result, sign }) => <div style={{ display: "flex", flexDirection: "column", maxWidth: 250 }}>
-  <div style={{ display: "flex", flexDirection: "row", justifyContent: "space-evenly", }}>
+const Result = ({ first, second, result, sign, error }) => <div style={{ display: "flex", flexDirection: "column", maxWidth: 250 }}>
+  <div style={{ display: "flex", flexDirection: "row", justifyContent: "space-evenly", color: error ? "red" : "green" }}>
     <h3>{first}</h3><h4>{symbols[sign]}</h4><h3>{second}</h3><h4>=</h4><h3>{result}</h3>
   </div>
 </div>
