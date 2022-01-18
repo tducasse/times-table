@@ -35,7 +35,7 @@ const Setup = ({ max, number, setMax, setNumber, startGame, setTime, time, sign,
   return (
     <form onSubmit={onSubmit}>
       <center>
-        <label>Max table</label>
+        <label>Max number</label>
         <input type="number" value={max} onChange={(e) => setMax(e.target.value)} />
 
         <label>Number of questions</label>
@@ -79,8 +79,20 @@ const getResult = (first, second, sign) => {
 }
 
 const getOperation = (max, sign) => {
-  const first = getNumber(max);
-  const second = getNumber(10);
+  let first = getNumber(max);
+  let second = getNumber(10);
+  switch (sign) {
+    case "addition":
+      second = getNumber(max)
+      break;
+    case "subtraction":
+      second = getNumber(first - 1)
+      break;
+    default:
+      break;
+  }
+
+
   return {
     result: String(getResult(first, second, sign)),
     first,
