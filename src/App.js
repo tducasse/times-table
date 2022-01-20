@@ -10,6 +10,10 @@ const App = () => {
   const [sign, setSign] = useState('multiplication')
   const [operations, setOperations] = useState(getOperations(max, number, sign));
 
+  useEffect(() => {
+    setOperations(getOperations(max, number, sign));
+  }, [sign, max, number])
+
   const startGame = () => setStep(1)
 
   const stopGame = () => setStep(2)
