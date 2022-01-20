@@ -3,16 +3,17 @@ import { useEffect, useState } from "react";
 const App = () => {
   const [number, setNumber] = useState(10);
   const [max, setMax] = useState(10);
+  const [maxRight, setMaxRight] = useState(10);
   const [time, setTime] = useState(60);
   const [score, setScore] = useState(0);
   const [step, setStep] = useState(0)
   const [errors, setErrors] = useState(0)
   const [sign, setSign] = useState('multiplication')
-  const [operations, setOperations] = useState(getOperations(max, number, sign));
+  const [operations, setOperations] = useState(getOperations(max, number, sign, maxRight));
 
   useEffect(() => {
-    setOperations(getOperations(max, number, sign));
-  }, [sign, max, number])
+    setOperations(getOperations(max, number, sign, maxRight));
+  }, [sign, max, number, maxRight])
 
   const startGame = () => setStep(1)
 
@@ -25,14 +26,26 @@ const App = () => {
   }
 
   return <>
-    {step === 0 && <Setup max={max} number={number} setNumber={setNumber} setMax={setMax} startGame={startGame} time={time} setTime={setTime} sign={sign} setSign={setSign} />}
+    {step === 0 && <Setup
+      max={max}
+      number={number}
+      setNumber={setNumber}
+      setMax={setMax}
+      startGame={startGame}
+      time={time}
+      setTime={setTime}
+      sign={sign}
+      setSign={setSign}
+      setMaxRight={setMaxRight}
+      maxRight={maxRight}
+    />}
     {step === 1 && <Game number={number} time={time} stopGame={stopGame} score={score} setScore={setScore} errors={errors} setErrors={setErrors} setOperations={setOperations} operations={operations} />}
     {step === 2 && <Results number={number} score={score} back={back} errors={errors} sign={sign} operations={operations} />}
   </>
 
 }
 
-const Setup = ({ max, number, setMax, setNumber, startGame, setTime, time, sign, setSign }) => {
+const Setup = ({ max, number, setMax, setNumber, startGame, setTime, time, sign, setSign, maxRight, setMaxRight }) => {
   const onSubmit = (e) => {
     e.preventDefault();
     startGame()
@@ -42,6 +55,11 @@ const Setup = ({ max, number, setMax, setNumber, startGame, setTime, time, sign,
       <center>
         <label>Max number</label>
         <input type="number" value={max} onChange={(e) => setMax(e.target.value)} />
+
+        {sign === "multiplication" && <>
+          <label>Max for the second number</label>
+          <input type="number" value={maxRight} onChange={(e) => setMaxRight(e.target.value)} />
+        </>}
 
         <label>Number of questions</label>
         <input type="number" value={number} onChange={(e) => setNumber(e.target.value)} />
@@ -83,9 +101,9 @@ const getResult = (first, second, sign) => {
   }
 }
 
-const getOperation = (max, sign) => {
+const getOperation = (max, sign, maxRight) => {
   let first = getNumber(max);
-  let second = getNumber(10);
+  let second = getNumber(maxRight);
   switch (sign) {
     case "addition":
       second = getNumber(max)
@@ -106,10 +124,10 @@ const getOperation = (max, sign) => {
   }
 }
 
-const getOperations = (max, number, sign) => {
+const getOperations = (max, number, sign, maxRight) => {
   const operations = [];
   for (let i = 0; i < number; i++) {
-    operations.push(getOperation(max, sign));
+    operations.push(getOperation(max, sign, maxRight));
   }
   return operations;
 }
@@ -179,7 +197,7 @@ const Results = ({ number, score, errors, back, sign, operations }) => <center>
 </center>
 
 const Result = ({ first, second, result, sign, error, answer }) => <div style={{ display: "flex", flexDirection: "column", maxWidth: 250 }}>
-  <div style={{ display: "flex", flexDirection: "column", padding: 3, backgroundColor: error ? "#e75959" : "#20a2c9", borderRadius: 10, margin: 6 }}>
+  <div style={{ display: "flex", flexDirection: "column", padding: 3, backgroundColor: error ? "#e75959" : "#20c973", borderRadius: 10, margin: 6 }}>
     <div style={{ display: "flex", flexDirection: "row", justifyContent: "space-evenly" }} >
       <h3>{first}</h3><h4>{symbols[sign]}</h4><h3>{second}</h3><h4>=</h4><h3>{result}</h3>
     </div>
