@@ -39,7 +39,7 @@ const App = () => {
       setMaxRight={setMaxRight}
       maxRight={maxRight}
     />}
-    {step === 1 && <Game number={number} time={time} stopGame={stopGame} score={score} setScore={setScore} errors={errors} setErrors={setErrors} setOperations={setOperations} operations={operations} />}
+    {step === 1 && <Game sign={sign} number={number} time={time} stopGame={stopGame} score={score} setScore={setScore} errors={errors} setErrors={setErrors} setOperations={setOperations} operations={operations} />}
     {step === 2 && <Results number={number} score={score} back={back} errors={errors} sign={sign} operations={operations} />}
   </>
 
@@ -56,7 +56,7 @@ const Setup = ({ max, number, setMax, setNumber, startGame, setTime, time, sign,
         <label>Max number</label>
         <input type="number" value={max} onChange={(e) => setMax(e.target.value)} />
 
-        {sign === "multiplication" && <>
+        {['multiplication', 'division'].includes(sign) && <>
           <label>Max for the second number</label>
           <input type="number" value={maxRight} onChange={(e) => setMaxRight(e.target.value)} />
         </>}
@@ -70,6 +70,7 @@ const Setup = ({ max, number, setMax, setNumber, startGame, setTime, time, sign,
         <label>Operation</label>
         <select type="number" value={sign} onChange={(e) => setSign(e.target.value)} >
           <option value="multiplication">Multiplication</option>
+          <option value="division">Division</option>
           <option value="addition">Addition</option>
           <option value="subtraction">Subtraction</option>
         </select>
@@ -80,12 +81,13 @@ const Setup = ({ max, number, setMax, setNumber, startGame, setTime, time, sign,
   )
 }
 
-const getNumber = (max) => Math.round(0.5 + Math.random() * max);
+const getNumber = (max) => Math.round(1.5 + Math.random() * max);
 
 const symbols = {
   addition: "+",
   subtraction: "-",
-  multiplication: "*"
+  multiplication: "x",
+  division: "/"
 }
 
 const getResult = (first, second, sign) => {
@@ -96,6 +98,10 @@ const getResult = (first, second, sign) => {
       return first - second;
     case "multiplication":
       return first * second;
+    case "division":
+      const quotient = Math.floor(first / second);
+      const remainder = first % second
+      return `q: ${quotient}, r: ${remainder}`
     default:
       return 0;
   }
@@ -107,14 +113,22 @@ const getOperation = (max, sign, maxRight) => {
   switch (sign) {
     case "addition":
       second = getNumber(max)
+      if (first < second) {
+        ([first, second] = [second, first])
+      }
       break;
     case "subtraction":
       second = getNumber(first - 1)
       break;
+    case "division":
+      second = getNumber(first - 1)
+    case "multiplication":
+      if (first < second) {
+        ([first, second] = [second, first])
+      }
     default:
       break;
   }
-
 
   return {
     result: String(getResult(first, second, sign)),
@@ -132,18 +146,25 @@ const getOperations = (max, number, sign, maxRight) => {
   return operations;
 }
 
+const isCorrect = (result, answer, sign) => {
+  if (sign === "division") {
+    return result === `q: ${answer.quotient}, r: ${answer.remainder}`
+  }
+  return result === answer
+}
 
-const Game = ({ number, time, setScore, score, stopGame, errors, setErrors, operations }) => {
+
+const Game = ({ number, time, setScore, score, stopGame, errors, setErrors, operations, sign }) => {
   const [count, setCount] = useState(1);
 
   const onAnswer = (answer) => {
-    if (answer === "") return;
+    if (answer === "" || (sign === "division" && answer.quotient === "")) return;
     const operation = operations[count - 1];
-    if (answer === operation.result) {
+    if (isCorrect(operation.result, answer, sign)) {
       setScore(score + 1);
     } else {
       operation.error = true;
-      operation.answer = answer;
+      operation.answer = sign === "division" ? `q: ${answer.quotient}, r: ${answer.remainder}` : answer;
       setErrors(errors + 1);
     }
     if (count < operations.length) {
@@ -153,20 +174,22 @@ const Game = ({ number, time, setScore, score, stopGame, errors, setErrors, oper
     }
   }
 
-  return <Question question={operations[count - 1].question} onAnswer={onAnswer} score={score} number={number} time={time} stopGame={stopGame} />
+  return <Question sign={sign} question={operations[count - 1].question} onAnswer={onAnswer} score={score} number={number} time={time} stopGame={stopGame} />
 }
 
 const Score = ({ score, total }) => <h2>Score: {score} / {total}</h2>
 
-const Question = ({ question, onAnswer, score, number, time, stopGame }) => {
-  const [answer, setAnswer] = useState("");
+const Question = ({ question, onAnswer, score, number, time, stopGame, sign }) => {
+  const [answer, setAnswer] = useState(sign === "division" ? { quotient: "", remainder: "" } : "");
 
   const onChange = (e) => setAnswer(e.target.value);
+  const onChangeRemainder = (e) => setAnswer({ ...answer, remainder: e.target.value });
+  const onChangeQuotient = (e) => setAnswer({ ...answer, quotient: e.target.value });
 
   const onSubmit = (e) => {
     e.preventDefault();
     onAnswer(answer);
-    setAnswer("");
+    setAnswer(sign === "division" ? { quotient: "", remainder: "" } : "");
   }
 
   return <form onSubmit={onSubmit}>
@@ -175,8 +198,14 @@ const Question = ({ question, onAnswer, score, number, time, stopGame }) => {
         <Timer time={time} stopGame={stopGame} />
         <Score score={score} total={number} /></div>
       <label><h1>{question}</h1></label>
-      <input type="number" value={answer} onChange={onChange} />
-      <button type="submit" disabled={answer === ""} style={{ marginTop: 36 }}>Answer</button>
+      {sign !== "division" && <input type="number" value={answer} onChange={onChange} />}
+      {sign === "division" && <>
+        <label>quotient</label>
+        <input type="number" value={answer.quotient} onChange={onChangeQuotient} />
+        <label>remainder</label>
+        <input type="number" value={answer.remainder} onChange={onChangeRemainder} />
+      </>}
+      <button type="submit" disabled={sign === "division" ? (answer.quotient === "" || answer.remainder === "") : answer === ""} style={{ marginTop: 36 }}>Answer</button>
     </center>
   </form >
 }
