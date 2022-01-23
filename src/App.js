@@ -121,7 +121,9 @@ const getOperation = (max, sign, maxRight) => {
       second = getNumber(first - 1)
       break;
     case "division":
-      second = getNumber(first - 1)
+      if (second > first) {
+        second = getNumber(first - 1)
+      }
       break;
     case "multiplication":
       if (first < second) {
