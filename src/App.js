@@ -122,10 +122,12 @@ const getOperation = (max, sign, maxRight) => {
       break;
     case "division":
       second = getNumber(first - 1)
+      break;
     case "multiplication":
       if (first < second) {
         ([first, second] = [second, first])
       }
+      break;
     default:
       break;
   }
