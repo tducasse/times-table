@@ -81,7 +81,10 @@ const Setup = ({ max, number, setMax, setNumber, startGame, setTime, time, sign,
   )
 }
 
-const getNumber = (max) => Math.round(1.5 + Math.random() * max);
+const getNumber = (max) => {
+  const rand = Math.round(0.5 + Math.random() * max);
+  return rand === 1 ? 2 : rand
+}
 
 const symbols = {
   addition: "+",
