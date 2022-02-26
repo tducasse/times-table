@@ -5,6 +5,7 @@ const App = () => {
   const [max, setMax] = useState(10);
   const [maxRight, setMaxRight] = useState(10);
   const [time, setTime] = useState(60);
+  const [timeLeft, setTimeLeft] = useState(60);
   const [score, setScore] = useState(0);
   const [step, setStep] = useState(0);
   const [errors, setErrors] = useState(0);
@@ -46,6 +47,8 @@ const App = () => {
       )}
       {step === 1 && (
         <Game
+          setTimeLeft={setTimeLeft}
+          timeLeft={timeLeft}
           sign={sign}
           number={number}
           time={time}
@@ -60,6 +63,7 @@ const App = () => {
       )}
       {step === 2 && (
         <Results
+          timeSpent={time - timeLeft}
           number={number}
           score={score}
           back={back}
@@ -98,17 +102,12 @@ const Setup = ({
           value={max}
           onChange={(e) => setMax(e.target.value)}
         />
-
-        {["multiplication", "division"].includes(sign) && (
-          <>
-            <label>Max for the second number</label>
-            <input
-              type="number"
-              value={maxRight}
-              onChange={(e) => setMaxRight(e.target.value)}
-            />
-          </>
-        )}
+        <label>Max for the second number</label>
+        <input
+          type="number"
+          value={maxRight}
+          onChange={(e) => setMaxRight(e.target.value)}
+        />
 
         <label>Number of questions</label>
         <input
@@ -134,6 +133,8 @@ const Setup = ({
           <option value="division">Division</option>
           <option value="addition">Addition</option>
           <option value="subtraction">Subtraction</option>
+          <option value="simplify">Simplify fraction</option>
+          <option value="fracadd">Add fraction</option>
         </select>
 
         <button type="submit">Start game</button>
@@ -152,6 +153,7 @@ const symbols = {
   subtraction: "-",
   multiplication: "x",
   division: "/",
+  simplify: "/",
 };
 
 const getResult = (first, second, sign) => {
@@ -231,6 +233,8 @@ const Game = ({
   setErrors,
   operations,
   sign,
+  timeLeft,
+  setTimeLeft,
 }) => {
   const [count, setCount] = useState(1);
 
@@ -257,6 +261,8 @@ const Game = ({
 
   return (
     <Question
+      setTimeLeft={setTimeLeft}
+      timeLeft={timeLeft}
       sign={sign}
       question={operations[count - 1].question}
       onAnswer={onAnswer}
@@ -282,6 +288,8 @@ const Question = ({
   time,
   stopGame,
   sign,
+  timeLeft,
+  setTimeLeft,
 }) => {
   const [answer, setAnswer] = useState(
     sign === "division" ? { quotient: "", remainder: "" } : ""
@@ -309,7 +317,12 @@ const Question = ({
             justifyContent: "space-between",
           }}
         >
-          <Timer time={time} stopGame={stopGame} />
+          <Timer
+            time={time}
+            stopGame={stopGame}
+            timeLeft={timeLeft}
+            setTimeLeft={setTimeLeft}
+          />
           <Score score={score} total={number} />
         </div>
         <label>
@@ -350,12 +363,21 @@ const Question = ({
   );
 };
 
-const Results = ({ number, score, errors, back, sign, operations }) => (
+const Results = ({
+  number,
+  score,
+  errors,
+  back,
+  sign,
+  operations,
+  timeSpent,
+}) => (
   <center>
     <h4>Number of questions: {number}</h4>
     <h4>Score: {score}</h4>
     <h4>Mistakes: {errors}</h4>
     <h4>Missed: {number - (score + errors)}</h4>
+    <h4>Time spent: {timeSpent}s</h4>
     <div
       style={{
         display: "flex",
@@ -423,9 +445,7 @@ const Result = ({ first, second, result, sign, error, answer }) => (
   </div>
 );
 
-const Timer = ({ time, stopGame }) => {
-  const [timeLeft, setTimeLeft] = useState(time);
-
+const Timer = ({ time, stopGame, timeLeft, setTimeLeft }) => {
   useEffect(() => {
     const timer = setTimeout(() => {
       setTimeLeft(timeLeft - 1);
@@ -436,7 +456,7 @@ const Timer = ({ time, stopGame }) => {
       stopGame();
     }
     return () => clearTimeout(timer);
-  }, [stopGame, time, timeLeft]);
+  }, [setTimeLeft, stopGame, time, timeLeft]);
 
   return (
     <center>
