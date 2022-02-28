@@ -5,7 +5,6 @@ const App = () => {
   const [max, setMax] = useState(10);
   const [maxRight, setMaxRight] = useState(10);
   const [time, setTime] = useState(60);
-  const [timeLeft, setTimeLeft] = useState(60);
   const [score, setScore] = useState(0);
   const [step, setStep] = useState(0);
   const [errors, setErrors] = useState(0);
@@ -47,8 +46,7 @@ const App = () => {
       )}
       {step === 1 && (
         <Game
-          setTimeLeft={setTimeLeft}
-          timeLeft={timeLeft}
+          setTime={setTime}
           sign={sign}
           number={number}
           time={time}
@@ -63,7 +61,7 @@ const App = () => {
       )}
       {step === 2 && (
         <Results
-          timeSpent={time - timeLeft}
+          time={time}
           number={number}
           score={score}
           back={back}
@@ -226,6 +224,7 @@ const isCorrect = (result, answer, sign) => {
 const Game = ({
   number,
   time,
+  setTime,
   setScore,
   score,
   stopGame,
@@ -233,8 +232,6 @@ const Game = ({
   setErrors,
   operations,
   sign,
-  timeLeft,
-  setTimeLeft,
 }) => {
   const [count, setCount] = useState(1);
 
@@ -261,8 +258,7 @@ const Game = ({
 
   return (
     <Question
-      setTimeLeft={setTimeLeft}
-      timeLeft={timeLeft}
+      setTime={setTime}
       sign={sign}
       question={operations[count - 1].question}
       onAnswer={onAnswer}
@@ -288,8 +284,7 @@ const Question = ({
   time,
   stopGame,
   sign,
-  timeLeft,
-  setTimeLeft,
+  setTime,
 }) => {
   const [answer, setAnswer] = useState(
     sign === "division" ? { quotient: "", remainder: "" } : ""
@@ -317,12 +312,7 @@ const Question = ({
             justifyContent: "space-between",
           }}
         >
-          <Timer
-            time={time}
-            stopGame={stopGame}
-            timeLeft={timeLeft}
-            setTimeLeft={setTimeLeft}
-          />
+          <Timer time={time} stopGame={stopGame} setTime={setTime} />
           <Score score={score} total={number} />
         </div>
         <label>
@@ -363,21 +353,13 @@ const Question = ({
   );
 };
 
-const Results = ({
-  number,
-  score,
-  errors,
-  back,
-  sign,
-  operations,
-  timeSpent,
-}) => (
+const Results = ({ number, score, errors, back, sign, operations, time }) => (
   <center>
     <h4>Number of questions: {number}</h4>
     <h4>Score: {score}</h4>
     <h4>Mistakes: {errors}</h4>
     <h4>Missed: {number - (score + errors)}</h4>
-    <h4>Time spent: {timeSpent}s</h4>
+    <h4>Time left: {time}s</h4>
     <div
       style={{
         display: "flex",
@@ -445,22 +427,22 @@ const Result = ({ first, second, result, sign, error, answer }) => (
   </div>
 );
 
-const Timer = ({ time, stopGame, timeLeft, setTimeLeft }) => {
+const Timer = ({ stopGame, time, setTime }) => {
   useEffect(() => {
     const timer = setTimeout(() => {
-      setTimeLeft(timeLeft - 1);
+      setTime(time - 1);
     }, 1000);
 
-    if (timeLeft === 0) {
+    if (time === 0) {
       clearTimeout(timer);
       stopGame();
     }
     return () => clearTimeout(timer);
-  }, [setTimeLeft, stopGame, time, timeLeft]);
+  }, [setTime, stopGame, time]);
 
   return (
     <center>
-      <h3>Time: {timeLeft}</h3>
+      <h3>Time: {time}</h3>
     </center>
   );
 };
